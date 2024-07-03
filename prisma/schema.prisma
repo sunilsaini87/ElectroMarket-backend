@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+
+model User {
+  id String    @id @default(auto()) @map("_id") @db.ObjectId
+  Username String @unique
+  Email  String @unique
+  Password String
+  WishList WishList[]
+  Product Product[]
+}
+
+
+model WishList {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  UserId String @db.ObjectId()
+  ProductId String @db.ObjectId()
+  Product Product @relation(fields: [ProductId], references: [id])
+  User User @relation(fields: [UserId], references: [id])
+} 
+
+model Admin {
+  id String  @id @default(auto()) @map("_id") @db.ObjectId
+  AdminName String @unique
+  Email String @unique
+  PhoneNumber String @unique
+  Password String 
+  Products Product[]
+}
+
+
+model Product {
+  id   String    @id @default(auto()) @map("_id") @db.ObjectId
+  Title String 
+  Description String
+  Price String
+  YoutubeLink String
+  Lock Boolean? @default(false)
+  ImageLink String?
+  AdminId String @db.ObjectId
+  UserId String? @db.ObjectId
+  Admin Admin @relation(fields: [AdminId],references: [id])
+  User User?  @relation(fields: [UserId], references: [id])
+  Wishlist WishList[]
+  createdAt DateTime
+}
