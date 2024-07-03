@@ -2,7 +2,7 @@ import { Router, response } from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import { userMiddleware } from "../middlewares/user.js";
 import { run } from "./gpt.js";
 export const userrouter = Router();
@@ -25,8 +25,8 @@ userrouter.post("/signup", async (req, res) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(5);
-    const hashedpassword = await bcrypt.hash(userpayload.Password, salt);
+    const salt = await bcryptjs.genSalt(5);
+    const hashedpassword = await bcryptjs.hash(userpayload.Password, salt);
 
     const newuser = await prisma.user.create({
       data: {
@@ -41,7 +41,7 @@ userrouter.post("/signup", async (req, res) => {
     return res.json({
       message: "User created Successfully",
       token: token,
-      user:newuser
+      user: newuser,
     });
   } catch (error) {
     console.error(error);
@@ -74,7 +74,7 @@ userrouter.post("/signin", async (req, res) => {
         return res.json({
           message: "Signed In successfully",
           token: token,
-          user:findinguser
+          user: findinguser,
         });
       } else {
         return res.status(411).json({
@@ -106,7 +106,7 @@ userrouter.post("/gpt", async (req, res) => {
 
 userrouter.post("/wishlist", async (req, res) => {
   const userpayload = req.body;
-  
+
   try {
     const wishlist = await prisma.wishList.create({
       data: {
@@ -129,7 +129,7 @@ userrouter.post("/wishlist", async (req, res) => {
 });
 userrouter.post("/deletewishlist", async (req, res) => {
   const userpayload = req.body;
-  
+
   try {
     const wishlist = await prisma.wishList.findFirst({
       where: {
@@ -138,10 +138,11 @@ userrouter.post("/deletewishlist", async (req, res) => {
       },
     });
 
-      await prisma.wishList.delete({
+    await prisma.wishList.delete({
       where: {
-        id:wishlist.id
-      }});
+        id: wishlist.id,
+      },
+    });
 
     return res.json({
       message: "Product deleted from to Wishlist.",
@@ -157,59 +158,57 @@ userrouter.post("/deletewishlist", async (req, res) => {
   }
 });
 
-userrouter.post('/lockedproduct',async (req,res)=>{
+userrouter.post("/lockedproduct", async (req, res) => {
   const userpayload = req.body;
   const lockproduct = await prisma.user.findFirst({
-    where:{
-      id:userpayload.UserId
+    where: {
+      id: userpayload.UserId,
     },
-    select:{
-      Product:true
-    }
-    
-  })
+    select: {
+      Product: true,
+    },
+  });
 
-  if (!lockproduct){
+  if (!lockproduct) {
     return res.status(500).json({
-      message:"No Bought Product till now."
-    })
+      message: "No Bought Product till now.",
+    });
   }
 
   return res.json({
-    product:lockproduct
-  })
-})
-userrouter.get('/wishlist/:email',async (req,res)=>{
+    product: lockproduct,
+  });
+});
+userrouter.get("/wishlist/:email", async (req, res) => {
   const email = req.params.email;
-  
+
   const finduser = await prisma.user.findFirst({
-    where:{
-      Email:email
+    where: {
+      Email: email,
     },
-    select:{
-        WishList:{
-          select:{
-            Product:{
-              select:{
-                id:true,
-                ImageLink:true,
-                Title:true,
-                Description:true,
-                Price:true
-              }
-            }
-          }
-        }
-    }
-  })
+    select: {
+      WishList: {
+        select: {
+          Product: {
+            select: {
+              id: true,
+              ImageLink: true,
+              Title: true,
+              Description: true,
+              Price: true,
+            },
+          },
+        },
+      },
+    },
+  });
   if (!finduser) {
     return res.status(411).json({
-      message:"User does not exist."
-    })
+      message: "User does not exist.",
+    });
   }
-  
-  return res.json({
-    wishList:finduser
-  })
 
-})
+  return res.json({
+    wishList: finduser,
+  });
+});

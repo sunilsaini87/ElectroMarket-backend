@@ -13,7 +13,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model User {
   id String    @id @default(auto()) @map("_id") @db.ObjectId
   Username String @unique
@@ -21,6 +20,8 @@ model User {
   Password String
   WishList WishList[]
   Product Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 
@@ -30,6 +31,8 @@ model WishList {
   ProductId String @db.ObjectId()
   Product Product @relation(fields: [ProductId], references: [id])
   User User @relation(fields: [UserId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 } 
 
 model Admin {
@@ -39,6 +42,8 @@ model Admin {
   PhoneNumber String @unique
   Password String 
   Products Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 
@@ -56,4 +61,6 @@ model Product {
   User User?  @relation(fields: [UserId], references: [id])
   Wishlist WishList[]
   createdAt DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
