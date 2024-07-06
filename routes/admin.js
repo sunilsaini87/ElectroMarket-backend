@@ -27,19 +27,30 @@ const uploadstorage = multer({ storage: storage });
 adminrouter.post("/signup", async (req, res) => {
   const Adminpayload = req.body;
   try {
+    if (
+      !Adminpayload.AdminName ||
+      !Adminpayload.Email ||
+      !Adminpayload.Password ||
+      !Adminpayload.PhoneNumber
+    ) {
+      return res.status(400).json({
+        message:
+          "Username, Email, Password and PhoneNumber are required fields.",
+      });
+    }
+
     const admin = await prisma.admin.findFirst({
       where: {
         Email: Adminpayload.Email,
       },
     });
     if (admin) {
-      return res.status(411).json({
+      return res.status(409).json({
         message: "Admin already exists",
       });
     }
 
-    const salt = await bcrypt.genSalt(5);
-    const hashedpassword = await bcrypt.hash(Adminpayload.Password, salt);
+    const hashedpassword = await bcrypt.hash(Adminpayload.Password, 10);
 
     const newadmin = await prisma.admin.create({
       data: {
@@ -55,16 +66,16 @@ adminrouter.post("/signup", async (req, res) => {
       process.env.JWT_SECRET_KEY
     );
 
-    return res.json({
+    return res.status(201).json({
       message: "Admin created Successfully",
       token: token,
       admin: newadmin,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error while creating admin:", error);
     return res.status(500).json({
       message: "Error while creating Admin. Please try again.",
-      details: error,
+      details: error.message || error,
     });
   }
 });
