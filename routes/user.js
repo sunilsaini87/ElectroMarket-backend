@@ -2,7 +2,7 @@ import { Router, response } from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcrypt";
 import { userMiddleware } from "../middlewares/user.js";
 import { run } from "./gpt.js";
 export const userrouter = Router();
@@ -13,6 +13,14 @@ dotenv.config({
 
 userrouter.post("/signup", async (req, res) => {
   const userpayload = req.body;
+
+  // Validate input fields
+  if (!userpayload.UserName || !userpayload.Email || !userpayload.Password) {
+    return res.status(400).json({
+      message: "Username, Email, and Password are required fields.",
+    });
+  }
+
   try {
     const user = await prisma.user.findFirst({
       where: {
@@ -20,22 +28,12 @@ userrouter.post("/signup", async (req, res) => {
       },
     });
     if (user) {
-      return res.status(411).json({
+      return res.status(409).json({
         message: "User already exists",
       });
     }
 
-    // const salt = await bcrypt.genSalt(5);
-    const hashedpassword = await bcryptjs
-      .hash(userpayload.Password, 12)
-      .then((hash) => {
-        // Handle the hashed value here
-        console.log("Hashed Password:", hash);
-      })
-      .catch((err) => {
-        // Handle errors
-        console.error("Error hashing password:", err);
-      });
+    const hashedpassword = await bcrypt.hash(userpayload.Password, 10);
 
     const newuser = await prisma.user.create({
       data: {
@@ -53,7 +51,7 @@ userrouter.post("/signup", async (req, res) => {
       user: newuser,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error while creating user:", error);
     return res.status(500).json({
       message: "Error while creating User. Please try again.",
       details: error,
@@ -70,7 +68,7 @@ userrouter.post("/signin", async (req, res) => {
       },
     });
     if (findinguser) {
-      const checkpassword = await bcryptjs.compare(
+      const checkpassword = await bcrypt.compare(
         userpayload.Password,
         findinguser.Password
       );

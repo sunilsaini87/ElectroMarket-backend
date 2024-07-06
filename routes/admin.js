@@ -2,7 +2,7 @@ import { Router } from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import { AdminMiddleware } from "../middlewares/admin.js";
 import multer from "multer";
 import fs from "fs";
