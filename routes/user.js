@@ -2,7 +2,7 @@ import { Router, response } from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import { userMiddleware } from "../middlewares/user.js";
 import { run } from "./gpt.js";
 export const userrouter = Router();
@@ -25,8 +25,17 @@ userrouter.post("/signup", async (req, res) => {
       });
     }
 
-    const salt = await bcrypt.genSalt(5);
-    const hashedpassword = await bcrypt.hash(userpayload.Password, salt);
+    // const salt = await bcrypt.genSalt(5);
+    const hashedpassword = await bcryptjs
+      .hash(userpayload.Password, 12)
+      .then((hash) => {
+        // Handle the hashed value here
+        console.log("Hashed Password:", hash);
+      })
+      .catch((err) => {
+        // Handle errors
+        console.error("Error hashing password:", err);
+      });
 
     const newuser = await prisma.user.create({
       data: {
@@ -61,7 +70,7 @@ userrouter.post("/signin", async (req, res) => {
       },
     });
     if (findinguser) {
-      const checkpassword = await bcrypt.compare(
+      const checkpassword = await bcryptjs.compare(
         userpayload.Password,
         findinguser.Password
       );
