@@ -2,7 +2,7 @@ import { Router } from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { AdminMiddleware } from "../middlewares/admin.js";
 import multer from "multer";
 import fs from "fs";
@@ -38,8 +38,8 @@ adminrouter.post("/signup", async (req, res) => {
       });
     }
 
-    const salt = await bcryptjs.genSalt(5);
-    const hashedpassword = await bcryptjs.hash(Adminpayload.Password, salt);
+    const salt = await bcrypt.genSalt(5);
+    const hashedpassword = await bcrypt.hash(Adminpayload.Password, salt);
 
     const newadmin = await prisma.admin.create({
       data: {
@@ -78,7 +78,7 @@ adminrouter.post("/signin", async (req, res) => {
       },
     });
     if (findingadmin) {
-      const checkpassword = await bcryptjs.compare(
+      const checkpassword = await bcrypt.compare(
         Adminpayload.Password,
         findingadmin.Password
       );
@@ -116,42 +116,27 @@ adminrouter.post(
   "/createproduct",
   uploadstorage.single("file"),
   async (req, res) => {
-    const AdminId = req.headers["adminid"]; // Assuming AdminId is passed in the headers
+    const AdminId = req.header;
     const payload = req.body;
-
-    // Validate required fields
-    if (
-      !payload.Title ||
-      !payload.Description ||
-      !payload.Price ||
-      !req.file ||
-      !payload.YoutubeLink
-    ) {
-      return res.status(400).json({
-        message: "All fields are required",
-      });
-    }
 
     try {
       const findAdmin = await prisma.admin.findFirst({
         where: {
-          id: AdminId, // Use the AdminId from headers
+          id: "664847ab6301d3b8d7f90cdd",
         },
       });
-
       if (findAdmin) {
         const newproduct = await prisma.product.create({
           data: {
             Title: payload.Title,
             Description: payload.Description,
-            Price: parseFloat(payload.Price), // Ensure price is a number
+            Price: payload.Price,
             ImageLink: req.file.filename,
             YoutubeLink: payload.YoutubeLink,
-            AdminId: AdminId,
+            AdminId: "664847ab6301d3b8d7f90cdd",
             createdAt: new Date(),
           },
         });
-
         return res.json({
           message: "Product Created Successfully.",
           product: newproduct,
