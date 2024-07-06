@@ -14,7 +14,7 @@ dotenv.config({
 const prisma = new PrismaClient(); // Instantiate PrismaClient
 
 async function startServer() {
-  const port = process.env.PORT || 3000; // Default to 3000 if PORT is not set in .env
+  const port = process.env.PORT;
 
   const app = express();
   app.use(cors());
