@@ -2,7 +2,7 @@ import { Router, response } from "express";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import jwt from "jsonwebtoken";
-import bcryptjs from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { userMiddleware } from "../middlewares/user.js";
 import { run } from "./gpt.js";
 export const userrouter = Router();
@@ -25,8 +25,8 @@ userrouter.post("/signup", async (req, res) => {
       });
     }
 
-    const salt = await bcryptjs.genSalt(5);
-    const hashedpassword = await bcryptjs.hash(userpayload.Password, salt);
+    const salt = await bcrypt.genSalt(5);
+    const hashedpassword = await bcrypt.hash(userpayload.Password, salt);
 
     const newuser = await prisma.user.create({
       data: {
@@ -36,19 +36,14 @@ userrouter.post("/signup", async (req, res) => {
       },
     });
 
-    const token = jwt.sign({ userid: newuser.id }, process.env.JWT_SECRET_KEY);
-
-    return res.json({
-      message: "User created Successfully",
-      token: token,
-      user: newuser,
+    const token = jwt.sign({ userid: newuser.id }, process.env.JWT_SECRET_KEY, {
+      expiresIn: "1h",
     });
+
+    res.status(201).json({ token, msg: "User registered successfully" });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({
-      message: "Error while creating User. Please try again.",
-      details: error,
-    });
+    res.status(500).send("Server error");
   }
 });
 

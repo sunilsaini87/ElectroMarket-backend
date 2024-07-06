@@ -60,7 +60,6 @@ model Product {
   Admin Admin @relation(fields: [AdminId],references: [id])
   User User?  @relation(fields: [UserId], references: [id])
   Wishlist WishList[]
-  createdAt DateTime
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
