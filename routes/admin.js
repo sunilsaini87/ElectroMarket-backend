@@ -127,7 +127,7 @@ adminrouter.post(
   "/createproduct",
   uploadstorage.single("file"),
   async (req, res) => {
-    const AdminId = req.header("AdminId"); // Ensure you set AdminId header in your request
+    const AdminId = req.header("AdminId");
     const { Title, Description, Price, YoutubeLink } = req.body;
 
     console.log("Request Headers:", req.headers);
@@ -135,7 +135,6 @@ adminrouter.post(
     console.log("Request File:", req.file);
 
     try {
-      // Validate required fields
       if (!AdminId || !Title || !Description || !Price) {
         return res.status(400).json({
           message:
@@ -143,7 +142,6 @@ adminrouter.post(
         });
       }
 
-      // Check if admin exists
       const findAdmin = await prisma.admin.findFirst({
         where: { id: AdminId },
       });
@@ -154,13 +152,12 @@ adminrouter.post(
         });
       }
 
-      // Create new product
       const newProduct = await prisma.product.create({
         data: {
           Title: Title,
           Description: Description,
           Price: parseFloat(Price),
-          ImageLink: req.file ? req.file.filename : null, // Set ImageLink to null if no file is uploaded
+          ImageLink: req.file ? req.file.filename : null,
           YoutubeLink: YoutubeLink,
           AdminId: AdminId,
           createdAt: new Date(),
