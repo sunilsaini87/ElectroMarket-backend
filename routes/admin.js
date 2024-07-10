@@ -127,42 +127,56 @@ adminrouter.post(
   "/createproduct",
   uploadstorage.single("file"),
   async (req, res) => {
-    const AdminId = req.header;
-    const payload = req.body;
+    const AdminId = req.header("AdminId"); // Ensure you set AdminId header in your request
+    const { Title, Description, Price, YoutubeLink } = req.body;
+
+    console.log("Request Headers:", req.headers);
+    console.log("Request Body:", req.body);
+    console.log("Request File:", req.file);
 
     try {
-      const findAdmin = await prisma.admin.findFirst({
-        where: {
-          id: "664847ab6301d3b8d7f90cdd",
-        },
-      });
-      if (findAdmin) {
-        const newproduct = await prisma.product.create({
-          data: {
-            Title: payload.Title,
-            Description: payload.Description,
-            Price: payload.Price,
-            ImageLink: req.file.filename,
-            YoutubeLink: payload.YoutubeLink,
-            AdminId: "664847ab6301d3b8d7f90cdd",
-            createdAt: new Date(),
-          },
-        });
-        return res.json({
-          message: "Product Created Successfully.",
-          product: newproduct,
-        });
-      } else {
+      // Validate required fields
+      if (!AdminId || !Title || !Description || !Price) {
         return res.status(400).json({
-          message: "Can't post product because Admin does not exist",
+          message:
+            "AdminId, Title, Description, and Price are required fields.",
         });
       }
+
+      // Check if admin exists
+      const findAdmin = await prisma.admin.findFirst({
+        where: { id: AdminId },
+      });
+
+      if (!findAdmin) {
+        return res.status(404).json({
+          message: "Admin not found. Can't create product.",
+        });
+      }
+
+      // Create new product
+      const newProduct = await prisma.product.create({
+        data: {
+          Title: Title,
+          Description: Description,
+          Price: parseFloat(Price),
+          ImageLink: req.file ? req.file.filename : null, // Set ImageLink to null if no file is uploaded
+          YoutubeLink: YoutubeLink,
+          AdminId: AdminId,
+          createdAt: new Date(),
+        },
+      });
+
+      return res.status(201).json({
+        message: "Product created successfully.",
+        product: newProduct,
+      });
     } catch (error) {
-      console.error(error);
+      console.error("Error while creating product:", error);
       return res.status(500).json({
         message:
           "Something went wrong while creating the product. Please try again.",
-        details: error,
+        details: error.message || error,
       });
     }
   }
